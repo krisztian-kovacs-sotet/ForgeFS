@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+FROM debian:bookworm-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake libssl-dev libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+        -DFORGEFS_BUILD_TESTS=OFF -DFORGEFS_BUILD_BENCHMARKS=OFF \
+    && cmake --build build --target forgefs_client -j "$(nproc)"
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libssl3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --create-home --home-dir /home/forgefs forgefs
+
+COPY --from=builder /src/build/client/forgefs_client /usr/local/bin/forgefs_client
+
+# ENTRYPOINT execs the binary directly (no login shell), so HOME must be set
+# explicitly — otherwise TokenStore would fall back to writing next to
+# whatever's mounted at WORKDIR instead of a real home directory.
+ENV HOME=/home/forgefs
+USER forgefs
+# Local files to upload/download live here — mount a host directory over it,
+# e.g. `-v $(pwd)/files:/files`.
+WORKDIR /files
+ENTRYPOINT ["forgefs_client"]

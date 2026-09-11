@@ -1,0 +1,49 @@
+# Build output
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+Testing/
+
+# Compiled objects / binaries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.pdb
+*.ilk
+
+# ForgeFS runtime artifacts
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+data/
+storage_data/
+server_data/
+node*_data/
+demo_files/*
+!demo_files/.gitkeep
+
+# Editor / IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

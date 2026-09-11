@@ -1,0 +1,16 @@
+build/
+build-*/
+cmake-build-*/
+out/
+
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+server_data/
+node*_data/
+
+.git/
+.vs/
+.vscode/
+.idea/

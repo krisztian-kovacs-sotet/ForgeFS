@@ -1,0 +1,91 @@
+services:
+  coordinator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+    ports:
+      - "9000:9000"
+    environment:
+      FORGEFS_PORT: "9000"
+      FORGEFS_DATA_DIR: /data
+      # Demo-only credentials, provisioned automatically on first boot —
+      # never do this for a real deployment. See docs/SECURITY.md.
+      FORGEFS_BOOTSTRAP_USER: demo
+      FORGEFS_BOOTSTRAP_PASSWORD: demo-password
+    volumes:
+      - coordinator_data:/data
+    restart: unless-stopped
+
+  storage-1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.storage
+    environment:
+      FORGEFS_PORT: "9100"
+      FORGEFS_DATA_DIR: /data
+      FORGEFS_ID: storage-1
+      FORGEFS_ADVERTISE_HOST: storage-1
+      FORGEFS_ADVERTISE_PORT: "9100"
+      FORGEFS_REGISTER: coordinator:9000
+    volumes:
+      - storage1_data:/data
+    depends_on:
+      - coordinator
+    restart: unless-stopped
+
+  storage-2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.storage
+    environment:
+      FORGEFS_PORT: "9100"
+      FORGEFS_DATA_DIR: /data
+      FORGEFS_ID: storage-2
+      FORGEFS_ADVERTISE_HOST: storage-2
+      FORGEFS_ADVERTISE_PORT: "9100"
+      FORGEFS_REGISTER: coordinator:9000
+    volumes:
+      - storage2_data:/data
+    depends_on:
+      - coordinator
+    restart: unless-stopped
+
+  storage-3:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.storage
+    environment:
+      FORGEFS_PORT: "9100"
+      FORGEFS_DATA_DIR: /data
+      FORGEFS_ID: storage-3
+      FORGEFS_ADVERTISE_HOST: storage-3
+      FORGEFS_ADVERTISE_PORT: "9100"
+      FORGEFS_REGISTER: coordinator:9000
+    volumes:
+      - storage3_data:/data
+    depends_on:
+      - coordinator
+    restart: unless-stopped
+
+  # Not started by `docker compose up` (see the "cli" profile) — it's a
+  # one-shot CLI, not a long-running service. Run commands with:
+  #   docker compose run --rm client login demo
+  #   docker compose run --rm client upload /files/some_file.txt
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+    environment:
+      FORGEFS_SERVER: coordinator:9000
+      FORGEFS_PASSWORD: demo-password
+    volumes:
+      - ./demo_files:/files
+    depends_on:
+      - coordinator
+    profiles: ["cli"]
+
+volumes:
+  coordinator_data:
+  storage1_data:
+  storage2_data:
+  storage3_data:

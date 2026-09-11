@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+FROM debian:bookworm-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake libssl-dev libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+        -DFORGEFS_BUILD_TESTS=OFF -DFORGEFS_BUILD_BENCHMARKS=OFF \
+    && cmake --build build --target forgefs_storage -j "$(nproc)"
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libssl3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --create-home --home-dir /data forgefs
+
+COPY --from=builder /src/build/storage/forgefs_storage /usr/local/bin/forgefs_storage
+
+USER forgefs
+WORKDIR /data
+EXPOSE 9100
+ENTRYPOINT ["forgefs_storage"]
