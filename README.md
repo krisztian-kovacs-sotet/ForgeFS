@@ -41,7 +41,7 @@ flowchart LR
 ## Quickstart (Docker Compose)
 
 ```bash
-git clone https://github.com/DSmithin/ForgeFS.git
+git clone https://github.com/krisztian-kovacs-sotet/ForgeFS.git
 cd ForgeFS
 docker compose up --build -d      # coordinator + 3 storage nodes
 ```
